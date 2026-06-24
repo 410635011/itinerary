@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>旅程行程表 v35</title>
+  <title>旅程行程表 v37</title>
   <style>
     :root {
       --bg:#fff9f6; --card:#fff; --ink:#3a1f2b; --muted:#7a5a68; --accent:#e64b5f;
@@ -179,10 +179,8 @@
     </header>
 
     <section class="panel" id="syncPanel" aria-label="Google Sheet 雲端同步" hidden>
-      <div class="syncControls">
-        <label>Apps /exec URL<input id="remoteUrl" type="url" placeholder="https://script.google.com/macros/s/.../exec" autocomplete="off" value="https://script.google.com/macros/s/AKfycbz6Y5kPrSU4yToumGbXXjQs4zz8pM1LyTT1mHntskjG_AcKPMSbLjm3QiDMvrqvz2Jo/exec"/></label>
-        <label>API Token<input id="remoteToken" type="password" placeholder="你在 Apps Script 設定的 API_TOKEN" autocomplete="off" value="8866" /></label>
-      </div>
+      <input id="remoteUrl" type="hidden" value="https://script.google.com/macros/s/AKfycbz6Y5kPrSU4yToumGbXXjQs4zz8pM1LyTT1mHntskjG_AcKPMSbLjm3QiDMvrqvz2Jo/exec" />
+      <input id="remoteToken" type="hidden" value="8866" />
       <div class="tripPicker">
         <label>選擇旅程資料<select id="remoteTripSelect"><option value="">先載入清單，或直接輸入旅程 key</option></select></label>
         <label>旅程 key<input id="remoteTripKey" type="text" placeholder="tokyo / kyoto" autocomplete="off" /></label>
@@ -195,7 +193,6 @@
 
       <div class="syncActions">
         <div class="btnRow">
-          <button class="primary" id="btnRemoteList" type="button">刷新現有清單</button>
           <button class="primary" id="btnRemoteLoad" type="button">匯入旅程資料</button>
           <button class="primary" id="btnRemoteSave" type="button">同步至雲端</button>
         </div>
@@ -663,8 +660,11 @@
         }
       };
 
+      const REMOTE_DEFAULT_URL = "https://script.google.com/macros/s/AKfycbz6Y5kPrSU4yToumGbXXjQs4zz8pM1LyTT1mHntskjG_AcKPMSbLjm3QiDMvrqvz2Jo/exec";
+      const REMOTE_DEFAULT_TOKEN = "8866";
+
       const Remote = {
-        defaults: () => ({ url:"", token:"", key:"trip", autoLoad:false, autoSave:false, revision:null, updatedAt:"", trips:[] }),
+        defaults: () => ({ url:REMOTE_DEFAULT_URL, token:REMOTE_DEFAULT_TOKEN, key:"trip", autoLoad:false, autoSave:false, revision:null, updatedAt:"", trips:[] }),
         timer:0,
         normalize(config = {}) {
           const base = Remote.defaults();
@@ -672,8 +672,8 @@
           const trips = Array.isArray(config.trips) ? config.trips : [];
           return {
             ...base, ...config,
-            url:String(config.url || "").trim(),
-            token:String(config.token || "").trim(),
+            url:String(config.url || REMOTE_DEFAULT_URL).trim(),
+            token:String(config.token || REMOTE_DEFAULT_TOKEN).trim(),
             key:Store.keyOf(config.key),
             autoLoad:Boolean(config.autoLoad),
             autoSave:Boolean(config.autoSave),
@@ -834,7 +834,10 @@
           Dom.refs.syncPanel.hidden = !open;
           Dom.refs.btnToggleSync.textContent = open ? "關閉同步" : "雲端同步";
           Dom.refs.btnToggleSync.setAttribute("aria-expanded", String(open));
-          if (open) Remote.paint();
+          if (open) {
+            Remote.paint();
+            setTimeout(() => Remote.list(), 0);
+          }
           ItineraryEditor.paint();
         },
         bind() {
@@ -844,7 +847,6 @@
           [r.remoteUrl, r.remoteToken, r.remoteTripKey].forEach(input => input.addEventListener("input", Remote.rememberConfig));
           [r.remoteAutoLoad, r.remoteAutoSave].forEach(input => input.addEventListener("change", Remote.rememberConfig));
           r.remoteTripKey.addEventListener("change", () => Remote.saveConfig(Remote.readForm()));
-          r.btnRemoteList.addEventListener("click", () => Remote.list());
           r.btnRemoteLoad.addEventListener("click", () => Remote.load({ ask:true }));
           r.btnRemoteSave.addEventListener("click", () => Remote.save());
           ItineraryEditor.bind();
@@ -871,7 +873,7 @@
       const Dom = {
         refs:{},
         cache() {
-          ["appTitle","appTitleTrip","days","q","filterType","filterStatus","stats","indexPanel","syncPanel","btnToggleSync","btnToggleIndex","btnExpandAll","btnCollapseAll","btnReset","remoteUrl","remoteToken","remoteTripSelect","remoteTripKey","remoteAutoLoad","remoteAutoSave","btnToggleTripEdit","tripEditPanel","btnAddDayFormToggle","addDayForm","btnAddDayCancel","btnRemoteList","btnRemoteLoad","btnRemoteSave","remoteStatus"].forEach(id => Dom.refs[id] = document.getElementById(id));
+          ["appTitle","appTitleTrip","days","q","filterType","filterStatus","stats","indexPanel","syncPanel","btnToggleSync","btnToggleIndex","btnExpandAll","btnCollapseAll","btnReset","remoteUrl","remoteToken","remoteTripSelect","remoteTripKey","remoteAutoLoad","remoteAutoSave","btnToggleTripEdit","tripEditPanel","btnAddDayFormToggle","addDayForm","btnAddDayCancel","btnRemoteLoad","btnRemoteSave","remoteStatus"].forEach(id => Dom.refs[id] = document.getElementById(id));
         },
         focusByData(selector, dataKey, value, child = "") {
           const focus = () => {
