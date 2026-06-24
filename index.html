@@ -572,7 +572,7 @@
           State.itinerary.push({ id:U.id(), date, title, people:null, items:[] });
           State.data.itinerary = State.itinerary = Data.sortItinerary(State.itinerary);
           Store.save();
-          form.reset();
+          //form.reset();
           //State.ui.addDayForm = false;
           State.ui.editTrip = true;
           ItineraryEditor.paint();
