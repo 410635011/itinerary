@@ -782,7 +782,7 @@
           try {
             Remote.saveConfig(Remote.readForm());
             const key = Store.keyOf(State.remote.key);
-            if (ask && !confirm(`要從 Google Sheet 載入「${key}」這筆旅程資料嗎？\n\n會覆蓋：日項目、預設小項目、完成勾選、自訂小項目。\n會保留：這筆旅程在本機的註記、記帳明細與幣別偏好。`)) return;
+            if (ask && !confirm(`要從 Google Sheet 載入「${key}」這筆旅程資料嗎？\n\n會保留此紀錄在本機的註記、記帳明細。`)) return;
             Remote.setStatus(`正在從雲端載入「${key}」共享行程資料…`);
             const result = await Remote.request("load", {}, key);
             Store.replace(result.data || {}, { preservePrivate:true, tripKey:key });
