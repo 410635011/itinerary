@@ -718,7 +718,7 @@
             const key = Store.keyOf(row.key);
             if (seen.has(key)) return;
             seen.add(key);
-            const label = row.title ? `${key}｜${row.title}` : key;
+            const label =  key;
             options.push(`<option value="${esc(key)}">${esc(label)}</option>`);
           });
           select.innerHTML = options.join("");
